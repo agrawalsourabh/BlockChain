@@ -32,7 +32,7 @@ class Blockchain:
         new_proof = 1
         check_proof = False
 
-        while !check_proof:
+        while check_proof == False:
             hash_operation = hashlib.sha256(str(new_proof ** 2 - previous_proof ** 2).encode()).hexdigest()
 
             if hash_operation[:4] == '0000':
@@ -70,3 +70,40 @@ class Blockchain:
             block_index = block_index + 1
 
         return True
+
+
+# Part 2 - Mining our Blockchain
+app = Flask(__name__)
+
+# Creating blockchain
+blockchain = Blockchain()
+
+# Mining new block
+@app.route('/mine_block', methods=['GET'])
+def mine_block():
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block['proof']
+
+    proof = blockchain.proof_of_work(previous_proof=previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+
+    block = blockchain.create_block(proof=proof, previous_hash=previous_hash)
+
+    response = {
+        'message': 'Cong! you mined a block'
+    }
+
+    return jsonify(response), 200
+
+# Getting the full block chain
+@app.route('/get_chain', methods=['GET'])
+def get_chain():
+    response = {
+        'length': len(blockchain.chain)
+    }
+
+    return jsonify(response), 200
+
+
+# run the application
+app.run(host='0.0.0.0', port=5000)
